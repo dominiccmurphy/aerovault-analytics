@@ -1,0 +1,30 @@
+services:
+  postgres_target:
+      image: postgres:15
+      environment:
+        POSTGRES_DB: skills_warehouse
+        POSTGRES_USER: analyst
+        POSTGRES_PASSWORD: secretpassword
+      volumes:
+        - ./sql:/docker-entrypoint-initdb.d
+      ports:
+        - "5433:5432"
+
+  airflow:
+    image: apache/airflow:2.10.4
+    depends_on:
+      - postgres_target
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - API_NINJAS_KEY=${API_NINJAS_KEY}
+      - _AIRFLOW_DB_MIGRATE=true
+      - _AIRFLOW_WWW_USER_CREATE=true
+      - _AIRFLOW_WWW_USER_USERNAME=admin
+      - _AIRFLOW_WWW_USER_PASSWORD=admin
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+    ports:
+      - "8080:8080"
+    command: standalone

@@ -1,0 +1,8 @@
+# Secrets
+.env
+
+# Temporary pipeline runs & caches
+data/tmp/
+__pycache__/
+*.pyc
+/data
