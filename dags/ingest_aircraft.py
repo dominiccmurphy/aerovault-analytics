@@ -35,29 +35,14 @@ def extract_aircraft_data(**context):
     with open(DATA_FILE, "r", encoding="utf-8") as file:
         data = json.load(file)
 
-    conn = psycopg2.connect(
-            host="postgres_target",
-            database="skills_warehouse",
-            user="analyst",
-            password="secretpassword",
-        )
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT manufacturer_id, name FROM aircraft_manufacturers;")
-    # Creates e.g. {'boeing': 1, 'airbus': 2, 'embraer': 3, 'piper': 4}
-    manufacturer_map = {name.lower(): m_id for m_id, name in cursor.fetchall()}
-
-    cursor.close()
-    conn.close()
-
     # Create tuple of records to be input into the database
-    records = [(manufacturer_map[x["manufacturer"].lower()], x["model"], float(x["max_speed_knots"]), float(x["range_nautical_miles"])) for x in data]
+    records = [{"manufacturer": x["manufacturer"], "model": x["model"], "max_speed_knots": float(x["max_speed_knots"]), "range_nautical_miles": float(x["range_nautical_miles"])} for x in data]
 
     run_date = context["ds"]  # Airflow automatically provides 'YYYY-MM-DD'
 
     TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
-    output_path = Path(f"{TEMP_DIR}/transformed_models_{run_date}.json")
+    output_path = Path(f"{TEMP_DIR}/aircraft_models_{run_date}.json")
     
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2)
@@ -68,19 +53,47 @@ def extract_aircraft_data(**context):
 
 def transform_aircraft_data(**context):
     # Pull the list returned by extract_task using XCom
-    raw_skills = context["ti"].xcom_pull(task_ids="extract_task")
-    formatted = [s.upper() for s in raw_skills]
-    print("Transformed skills:", formatted)
-    return formatted
+    output_path = context["ti"].xcom_pull(task_ids="extract_task")
+
+    conn = psycopg2.connect(
+            host="postgres_target",
+            database=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+        )
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT manufacturer_id, name FROM aircraft_manufacturers;")
+    # Creates e.g. {'boeing': 1, 'airbus': 2, 'embraer': 3, 'piper': 4}
+    manufacturer_map = {name.lower(): m_id for m_id, name in cursor.fetchall()}
+
+    cursor.close()
+    conn.close()
+
+    data = []
+    with open(output_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    records = [(manufacturer_map[x["manufacturer"].lower()], x["model"], float(x["max_speed_knots"]), float(x["range_nautical_miles"])) for x in data]
+
+    run_date = context["ds"]  # Airflow automatically provides 'YYYY-MM-DD'
+
+    output_path = Path(f"{TEMP_DIR}/aircraft_models_transformed_{run_date}.json")
+        
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, indent=2)
+
+    return str(output_path)
+    
 
 def load_aircraft_data(**context):
     final_skills = context["ti"].xcom_pull(task_ids="transform_task")
     
     conn = psycopg2.connect(
         host="postgres_target",
-        database="skills_warehouse",
-        user="analyst",
-        password="secretpassword",
+        database=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
     )
     cursor = conn.cursor()
 
