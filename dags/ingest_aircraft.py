@@ -11,21 +11,11 @@ import shutil
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
+from include.db import get_connection
+from include.transforms import convert_float
+
 DATA_DIR = Path("/opt/airflow/data")
 TEMP_DIR = Path(f"{DATA_DIR}/tmp")
-
-def get_connection():
-    conn = psycopg2.connect(
-        host="postgres_target",
-        database=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-    )
-
-    return conn
-
-def convert_float(x):
-    return float(x) if x is not None else None
 
 def extract_aircraft_data(**context):
     api_key = os.getenv("API_NINJAS_KEY")
@@ -78,7 +68,7 @@ def transform_aircraft_data(**context):
                 manufacturer_map = {name.lower(): m_id for m_id, name in cursor.fetchall()}
     finally:
         conn.close()
-        
+
     data = []
     file_path = Path(f"{output_dir}/aircraft_models.json")
     with open(file_path, "r", encoding="utf-8") as f:

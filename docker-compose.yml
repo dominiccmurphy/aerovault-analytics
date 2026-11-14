@@ -5,6 +5,11 @@ services:
         POSTGRES_DB: ${POSTGRES_DB}
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
       volumes:
         - ./sql:/docker-entrypoint-initdb.d
       ports:
@@ -13,8 +18,10 @@ services:
   airflow:
     image: apache/airflow:2.10.4
     depends_on:
-      - postgres_target
+      postgres_target:
+        condition: service_healthy
     environment:
+      - PYTHONPATH=/opt/airflow
       - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - API_NINJAS_KEY=${API_NINJAS_KEY}
@@ -28,6 +35,8 @@ services:
     volumes:
       - ./dags:/opt/airflow/dags
       - ./data:/opt/airflow/data
+      - ./include:/opt/airflow/include
+      - ./tests:/opt/airflow/tests
     ports:
       - "8080:8080"
     command: standalone

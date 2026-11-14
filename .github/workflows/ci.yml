@@ -1,0 +1,33 @@
+name: AeroVault Analytics CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Run pytest inside the airflow container
+        env:
+          POSTGRES_DB: aerovault_test
+          POSTGRES_USER: analyst
+          POSTGRES_PASSWORD: testpassword
+          API_NINJAS_KEY: dummy_ci_key
+          AIRFLOW_USER: admin
+          AIRFLOW_PASSWORD: admin
+
+        run: docker compose run --rm --entrypoint bash airflow -c "pip install --quiet pytest && pytest /opt/airflow/tests"
+
+      - name: Tear down containers
+        if: always()
+        run: docker compose down -v
