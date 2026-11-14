@@ -23,8 +23,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - _AIRFLOW_DB_MIGRATE=true
       - _AIRFLOW_WWW_USER_CREATE=true
-      - _AIRFLOW_WWW_USER_USERNAME=admin
-      - _AIRFLOW_WWW_USER_PASSWORD=admin
+      - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_USER}
+      - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_PASSWORD}
     volumes:
       - ./dags:/opt/airflow/dags
       - ./data:/opt/airflow/data

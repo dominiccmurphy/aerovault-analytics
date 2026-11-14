@@ -5,6 +5,8 @@ import requests
 import os
 from pathlib import Path
 import json
+import logging
+import shutil
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -12,16 +14,29 @@ from airflow.operators.python import PythonOperator
 DATA_DIR = Path("/opt/airflow/data")
 TEMP_DIR = Path(f"{DATA_DIR}/tmp")
 
+def get_connection():
+    conn = psycopg2.connect(
+        host="postgres_target",
+        database=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+    )
+
+    return conn
+
+def convert_float(x):
+    return float(x) if x is not None else None
+
 def extract_aircraft_data(**context):
     api_key = os.getenv("API_NINJAS_KEY")
 
     if not api_key:
         raise ValueError("API_NINJAS_KEY environment variable is missing!")
 
-    aircraft_manufacturers = ["Boeing", "Airbus", "Embraer", "Piper", "Cessna", "Gulfstream"]
+    # aircraft_manufacturers = ["Boeing", "Airbus", "Embraer", "Piper", "Cessna", "Gulfstream"]
 
     # response = requests.get(
-    #     "https://api-ninjas.com",
+    #     "https://api.api-ninjas.com/v1/aircraft",
     #     headers={"X-Api-Key": api_key},
     #     params={"manufacturer": "Boeing", "limit": "30"},
     #     timeout=10,
@@ -36,84 +51,92 @@ def extract_aircraft_data(**context):
         data = json.load(file)
 
     # Create tuple of records to be input into the database
-    records = [{"manufacturer": x["manufacturer"], "model": x["model"], "max_speed_knots": float(x["max_speed_knots"]), "range_nautical_miles": float(x["range_nautical_miles"])} for x in data]
+    records = [{"manufacturer": x["manufacturer"], "model": x["model"], "aircraft_class": x["aircraft_class"], "max_speed_knots": x["max_speed_knots"], "range_nautical_miles": x["range_nautical_miles"]} for x in data]
 
-    run_date = context["ds"]  # Airflow automatically provides 'YYYY-MM-DD'
+    run_id = context["ts_nodash"]
 
-    TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(f"{TEMP_DIR}/{run_id}")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    output_path = Path(f"{TEMP_DIR}/aircraft_models_{run_date}.json")
+    output_file = Path(f"{output_dir}/aircraft_models.json")
     
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2)
 
-    return str(output_path)
+    return str(output_dir)
 
 
 
 def transform_aircraft_data(**context):
-    # Pull the list returned by extract_task using XCom
-    output_path = context["ti"].xcom_pull(task_ids="extract_task")
+    output_dir = context["ti"].xcom_pull(task_ids="extract_task")
 
-    conn = psycopg2.connect(
-            host="postgres_target",
-            database=os.getenv("POSTGRES_DB"),
-            user=os.getenv("POSTGRES_USER"),
-            password=os.getenv("POSTGRES_PASSWORD"),
-        )
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT manufacturer_id, name FROM aircraft_manufacturers;")
-    # Creates e.g. {'boeing': 1, 'airbus': 2, 'embraer': 3, 'piper': 4}
-    manufacturer_map = {name.lower(): m_id for m_id, name in cursor.fetchall()}
-
-    cursor.close()
-    conn.close()
-
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT manufacturer_id, name FROM aircraft_manufacturers;")
+                # Creates e.g. {'boeing': 1, 'airbus': 2, 'embraer': 3, 'piper': 4}
+                manufacturer_map = {name.lower(): m_id for m_id, name in cursor.fetchall()}
+    finally:
+        conn.close()
+        
     data = []
-    with open(output_path, "r", encoding="utf-8") as f:
+    file_path = Path(f"{output_dir}/aircraft_models.json")
+    with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    records = [(manufacturer_map[x["manufacturer"].lower()], x["model"], float(x["max_speed_knots"]), float(x["range_nautical_miles"])) for x in data]
+    records = [{"manufacturer_id": manufacturer_map.get(x["manufacturer"].lower(), -1), "model": x["model"], "aircraft_class": x["aircraft_class"], "max_speed_knots": convert_float(x["max_speed_knots"]), "range_nautical_miles": convert_float(x["range_nautical_miles"])} for x in data]
 
-    run_date = context["ds"]  # Airflow automatically provides 'YYYY-MM-DD'
-
-    output_path = Path(f"{TEMP_DIR}/aircraft_models_transformed_{run_date}.json")
+    output_file = Path(f"{output_dir}/aircraft_models_transformed.json")
         
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2)
 
-    return str(output_path)
+    return str(output_dir)
     
 
 def load_aircraft_data(**context):
-    final_skills = context["ti"].xcom_pull(task_ids="transform_task")
-    
-    conn = psycopg2.connect(
-        host="postgres_target",
-        database=os.getenv("POSTGRES_DB"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-    )
-    cursor = conn.cursor()
+    output_dir = context["ti"].xcom_pull(task_ids="transform_task")
 
-    cursor.execute("""
-    """)
+    data = []
+    file_path = Path(f"{output_dir}/aircraft_models_transformed.json")
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-    # Batch insert safely without duplicates
-    records = [(skill,) for skill in final_skills]
-    cursor.executemany(
-        "INSERT INTO target_skills (skill) VALUES (%s) ON CONFLICT (skill) DO NOTHING;",
-        records,
-    )
-    conn.commit()
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Batch insert safely without duplicates
+                records = [
+                    (record["manufacturer_id"], record["model"], record["aircraft_class"], record["max_speed_knots"], record["range_nautical_miles"])
+                    for record in data if record["manufacturer_id"] != -1
+                ]
+                skipped_records = [x for x in data if x["manufacturer_id"] == -1]
 
-    # Read back to verify
-    cursor.execute("SELECT * FROM target_skills;")
-    print("Rows currently in PostgreSQL:", cursor.fetchall())
+                execute_values(cursor, 
+                    """
+                    INSERT INTO aircraft_models
+                        (manufacturer_id, model_name, aircraft_class, max_speed_knots, max_range_nm) 
+                        VALUES %s
+                        ON CONFLICT(manufacturer_id, model_name) DO UPDATE
+                        SET aircraft_class=EXCLUDED.aircraft_class,
+                        max_speed_knots=EXCLUDED.max_speed_knots,
+                        max_range_nm=EXCLUDED.max_range_nm
+                    """,
+                    records
+                )
+                conn.commit()
 
-    cursor.close()
-    conn.close()
+                # Read back to verify
+                cursor.execute("SELECT count(model_id) FROM aircraft_models;")
+                logging.info("Rows currently in aircraft_models: %s", cursor.fetchone()[0])
+
+                if len(skipped_records) > 0:
+                    logging.info("Skipped records due to unknown manufacturer: %s", len(skipped_records)) 
+    finally:
+        conn.close()
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+    logging.info("Cleaned up run folder: %s", output_dir)
 
 with DAG(
     dag_id="aircraft_data_etl_pipeline",
