@@ -45,7 +45,7 @@ FROM
     ) AS V(model_name, passenger_capacity, price_millions_usd) ON m.name='Boeing'
 ON CONFLICT (manufacturer_id, model_name) DO UPDATE
 SET passenger_capacity=EXCLUDED.passenger_capacity,
-    price_millions_usd=EXCLUDED.price_millions_usd
+    price_millions_usd=EXCLUDED.price_millions_usd;
 
 
 INSERT INTO airlines (icao_code, name) VALUES
@@ -81,4 +81,4 @@ INSERT INTO airlines (icao_code, name) VALUES
     ('UAE', 'Emirates'),
     ('UAL', 'United Airlines'),
     ('VIR', 'Virgin Atlantic')
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (icao_code) DO NOTHING;

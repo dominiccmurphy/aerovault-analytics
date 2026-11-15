@@ -14,3 +14,6 @@ def test_dag_loads_cleanly():
     assert len(dagbag.import_errors) == 0
     assert "aircraft_data_etl_pipeline" in dagbag.dags
     assert len(dagbag.dags["aircraft_data_etl_pipeline"].tasks) == 3
+
+    assert "airspace_data_etl_pipeline" in dagbag.dags
+    assert len(dagbag.dags["airspace_data_etl_pipeline"].tasks) == 6

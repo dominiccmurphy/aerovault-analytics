@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS aircraft_commercial_specs (
 
 CREATE TABLE IF NOT EXISTS airlines (
     icao_code VARCHAR(10) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
+    name VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS live_airspace_snapshots (
