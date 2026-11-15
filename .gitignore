@@ -6,3 +6,5 @@ data/tmp/
 __pycache__/
 *.pyc
 /data
+/api/obj
+/api/.vs
