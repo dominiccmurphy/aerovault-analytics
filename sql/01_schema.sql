@@ -23,6 +23,11 @@ CREATE TABLE IF NOT EXISTS aircraft_commercial_specs (
     UNIQUE(manufacturer_id, model_name)
 );
 
+CREATE TABLE IF NOT EXISTS airlines (
+    icao_code VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS live_airspace_snapshots (
     snapshot_date date NOT NULL,
     origin_country VARCHAR(100) NOT NULL,
@@ -30,3 +35,12 @@ CREATE TABLE IF NOT EXISTS live_airspace_snapshots (
     avg_velocity_ms DECIMAL(10, 2) NOT NULL,
     PRIMARY KEY(snapshot_date, origin_country)
 );
+
+CREATE TABLE IF NOT EXISTS live_airline_snapshots (
+    snapshot_date date NOT NULL,
+    icao_code VARCHAR(10) NOT NULL,
+    active_aircraft_count INTEGER NOT NULL,
+    avg_velocity_ms DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY(snapshot_date, icao_code)
+);
+

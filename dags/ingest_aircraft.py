@@ -14,8 +14,8 @@ from airflow.operators.python import PythonOperator
 from include.db import get_connection
 from include.transforms import convert_float
 
-DATA_DIR = Path("/opt/airflow/data")
-TEMP_DIR = Path(f"{DATA_DIR}/tmp")
+DATA_DIR = Path("/opt/airflow/data/")
+TEMP_DIR = Path(f"{DATA_DIR}/tmp/aircraft")
 
 def extract_aircraft_data(**context):
     api_key = os.getenv("API_NINJAS_KEY")
@@ -40,6 +40,7 @@ def extract_aircraft_data(**context):
     with open(DATA_FILE, "r", encoding="utf-8") as file:
         data = json.load(file)
 
+    
     # Create tuple of records to be input into the database
     records = [{"manufacturer": x["manufacturer"], "model": x["model"], "aircraft_class": x["aircraft_class"], "max_speed_knots": x["max_speed_knots"], "range_nautical_miles": x["range_nautical_miles"]} for x in data]
 

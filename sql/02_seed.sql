@@ -46,3 +46,39 @@ FROM
 ON CONFLICT (manufacturer_id, model_name) DO UPDATE
 SET passenger_capacity=EXCLUDED.passenger_capacity,
     price_millions_usd=EXCLUDED.price_millions_usd
+
+
+INSERT INTO airlines (icao_code, name) VALUES
+    ('AAL', 'American Airlines'),
+    ('ACA', 'Air Canada'),
+    ('AFR', 'Air France'),
+    ('AMX', 'Aeroméxico'),
+    ('ANA', 'All Nippon Airways'),
+    ('ANZ', 'Air New Zealand'),
+    ('ASA', 'Alaska Airlines'),
+    ('BAW', 'British Airways'),
+    ('CPA', 'Cathay Pacific'),
+    ('DAL', 'Delta Air Lines'),
+    ('DLH', 'Lufthansa'),
+    ('EIN', 'Aer Lingus'),
+    ('ETD', 'Etihad Airways'),
+    ('ETH', 'Ethiopian Airlines'),
+    ('EZY', 'EasyJet'),
+    ('IBE', 'Iberia'),
+    ('JAL', 'Japan Airlines'),
+    ('JBU', 'JetBlue'),
+    ('KAL', 'Korean Air'),
+    ('KLM', 'KLM'),
+    ('LAN', 'LATAM Airlines'),
+    ('QFA', 'Qantas'),
+    ('QTR', 'Qatar Airways'),
+    ('RYR', 'Ryanair'),
+    ('SAA', 'South African Airways'),
+    ('SIA', 'Singapore Airlines'),
+    ('SVA', 'Saudia'),
+    ('SWA', 'Southwest Airlines'),
+    ('THY', 'Turkish Airlines'),
+    ('UAE', 'Emirates'),
+    ('UAL', 'United Airlines'),
+    ('VIR', 'Virgin Atlantic')
+ON CONFLICT (name) DO NOTHING;

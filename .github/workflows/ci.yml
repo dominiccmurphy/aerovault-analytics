@@ -23,6 +23,7 @@ jobs:
           POSTGRES_USER: analyst
           POSTGRES_PASSWORD: testpassword
           API_NINJAS_KEY: dummy_ci_key
+          API_OPENSKY_KEY: dummy_opensky_key
           AIRFLOW_USER: admin
           AIRFLOW_PASSWORD: admin
 
