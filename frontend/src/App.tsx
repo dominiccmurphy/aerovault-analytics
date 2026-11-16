@@ -1,35 +1,15 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-
-interface AirlineAirspace {
-  snapshotDate: string;
-  icaoCode: string;
-  airlineName: string;
-  activeAircraftCount: number;
-  avgVelocityMs: number;
-}
-
-interface CountryAirspace {
-  snapshotDate: string;
-  originCountry: string;
-  activeAircraftCount: number;
-  avgVelocityMs: number;
-}
-
-interface AircraftModel {
-  modelId: number;
-  manufacturer: string;
-  headquarters: string;
-  modelName: string;
-  aircraftClass: string;
-  maxSpeedKnots: number;
-  maxRangeNm: number;
-  passengerCapacity: number;
-  priceMillionsUsd: number;
-  costPerSeatMillionsUsd: number;
-}
-
-type TabOption = 'airlines' | 'countries' | 'aircraft';
+import { useEffect, useState } from 'react';
+import './App.css';
+import {
+  type AirlineAirspace,
+  type CountryAirspace,
+  type AircraftModel,
+  type TabOption,
+} from './types/aviation';
+import { KpiGrid } from './components/KpiGrid';
+import { AirlinesTable } from './components/AirlinesTable';
+import { CountriesTable } from './components/CountriesTable';
+import { AircraftTable } from './components/AircraftTable';
 
 
 function App() {
@@ -74,6 +54,25 @@ function App() {
     setSearchQuery('');
   };
 
+  const query = searchQuery.toLowerCase();
+
+  const filteredAirlines = airlines.filter(
+    (a) =>
+      a.airlineName.toLowerCase().includes(query) ||
+      a.icaoCode.toLowerCase().includes(query)
+  );
+
+  const filteredCountries = countries.filter((c) =>
+    c.originCountry.toLowerCase().includes(query)
+  );
+
+  const filteredAircraft = aircraftModels.filter(
+    (m) =>
+      m.modelName.toLowerCase().includes(query) ||
+      m.manufacturer.toLowerCase().includes(query) ||
+      m.aircraftClass.toLowerCase().includes(query)
+  );
+
   return (
     <div className="dashboard-container">
       <header className="top-header">
@@ -85,36 +84,13 @@ function App() {
 
       {error && <div className="error-banner">{error}</div>}
 
-      {/* 3. The 4 KPI Cards */}
-      <section className="kpi-grid">
-        <div className="kpi-card kpi-accent-green">
-          <div className="kpi-label">Active Aircraft Airborne</div>
-          <div className="kpi-value">
-            {loading ? '...' : totalAirborne.toLocaleString()}
-          </div>
-        </div>
-
-        <div className="kpi-card kpi-accent-blue">
-          <div className="kpi-label">Tracked Airlines</div>
-          <div className="kpi-value">
-            {loading ? '...' : airlines.length}
-          </div>
-        </div>
-
-        <div className="kpi-card kpi-accent-blue">
-          <div className="kpi-label">Origin Countries</div>
-          <div className="kpi-value">
-            {loading ? '...' : countries.length}
-          </div>
-        </div>
-
-        <div className="kpi-card kpi-accent-amber">
-          <div className="kpi-label">Avg Airline Velocity</div>
-          <div className="kpi-value">
-            {loading ? '...' : `${avgFleetSpeed} m/s`}
-          </div>
-        </div>
-      </section>
+      <KpiGrid
+        loading={loading}
+        totalAirborne={totalAirborne}
+        airlinesCount={airlines.length}
+        countriesCount={countries.length}
+        avgFleetSpeed={avgFleetSpeed}
+      />
 
       <section className="toolbar-row">
         <div className="tab-group">
@@ -147,9 +123,23 @@ function App() {
         />
       </section>
 
-      <p style={{ color: '#94a3b8' }}>
-        Currently viewing: <strong>{activeTab}</strong> | Search filter: "{searchQuery}"
-      </p>
+      <section className="table-card">
+        {loading ? (
+          <div className="empty-state">Loading airspace telemetry...</div>
+        ) : (
+          <>
+            {activeTab === 'airlines' && (
+              <AirlinesTable airlines={filteredAirlines} />
+            )}
+            {activeTab === 'countries' && (
+              <CountriesTable countries={filteredCountries} />
+            )}
+            {activeTab === 'aircraft' && (
+              <AircraftTable models={filteredAircraft} />
+            )}
+          </>
+        )}
+      </section>
     </div>
   );
 }

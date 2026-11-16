@@ -133,3 +133,62 @@
 .search-input:focus {
   border-color: #38bdf8;
 }
+
+.table-card {
+  background-color: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  overflow-x: auto; /* Lets wide tables scroll horizontally on small screens */
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse; /* Removes double borders between table cells */
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.data-table th {
+  background-color: #0f172a;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid #1e293b;
+}
+
+.data-table td {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+
+/* Highlight row on mouse hover */
+.data-table tbody tr:hover {
+  background-color: #1e293b;
+}
+
+/* Remove bottom border from the very last row */
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Small badge for ICAO codes and Aircraft Classes */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: #1e293b;
+  color: #38bdf8;
+  border: 1px solid #334155;
+}
+
+.empty-state {
+  padding: 2.5rem;
+  text-align: center;
+  color: #94a3b8;
+}
