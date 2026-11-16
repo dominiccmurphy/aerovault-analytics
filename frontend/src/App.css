@@ -1,0 +1,135 @@
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #1e293b;
+  margin-bottom: 2rem;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #38bdf8; /* Sky blue accent */
+}
+
+.status-pill {
+  background-color: #064e3b;
+  color: #34d399;
+  border: 1px solid #059669;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Native CSS Grid for the 4 top KPI cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  background-color: #111827; /* Slightly lighter slate than body */
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.kpi-label {
+  color: #94a3b8; /* Muted grey-blue */
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.kpi-accent-green {
+  border-bottom: 3px solid #10b981;
+}
+
+.kpi-accent-blue {
+  border-bottom: 3px solid #38bdf8;
+}
+
+.kpi-accent-amber {
+  border-bottom: 3px solid #f59e0b;
+}
+
+.error-banner {
+  background-color: #450a0a;
+  border: 1px solid #dc2626;
+  color: #fca5a5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.toolbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-group {
+  display: flex;
+  gap: 0.5rem;
+  background-color: #111827;
+  padding: 0.35rem;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+}
+
+.tab-btn {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: #f8fafc;
+}
+
+.tab-btn.active {
+  background-color: #38bdf8; /* Sky blue highlight */
+  color: #0b1120;            /* Dark text for strong contrast */
+  font-weight: 600;
+}
+
+.search-input {
+  background-color: #111827;
+  border: 1px solid #1e293b;
+  color: #f8fafc;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  min-width: 260px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #38bdf8;
+}
