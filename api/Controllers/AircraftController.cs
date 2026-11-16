@@ -17,7 +17,7 @@ public class AircraftController(NpgsqlDataSource dataSource) : ControllerBase
             FROM
                 vw_aircraft_analytics
             WHERE
-                (@Manufacturer IS NULL OR LOWER(manufacturer) = LOWER(@Manufacturer))
+                (@Manufacturer::text IS NULL OR LOWER(manufacturer) = LOWER(@Manufacturer::text))
             ORDER BY
                 manufacturer, model_name;
             ",

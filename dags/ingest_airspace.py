@@ -136,11 +136,18 @@ def transform_airline_data(**context):
     airline_velocities = defaultdict(list)
 
     for f in records:
-        airline_velocities[f.icao24].append(f.velocity)
+        if (
+            f.callsign
+            and len(f.callsign) >= 4
+            and f.callsign[:3].isalpha()
+            and f.callsign[3:].isdigit()
+        ):
+            airline_code = f.callsign[:3]
+            airline_velocities[airline_code].append(f.velocity)
 
     airline_snapshots = [
         {
-            "icao24": icao,
+            "icao_code": icao,
             "active_aircraft_count": len(velocities),
             "avg_velocity_ms": round(sum(velocities) / len(velocities), 4),
         }
@@ -209,7 +216,7 @@ def load_airline_data(**context):
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 # Batch insert safely without duplicates
-                records = [(run_date, x["icao24"], x["active_aircraft_count"], x["avg_velocity_ms"]) for x in data]
+                records = [(run_date, x["icao_code"], x["active_aircraft_count"], x["avg_velocity_ms"]) for x in data]
 
                 execute_values(cursor, 
                     """
