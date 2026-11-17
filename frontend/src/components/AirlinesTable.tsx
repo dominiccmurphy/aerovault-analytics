@@ -1,6 +1,8 @@
 import type { AirlineAirspace } from '../types/aviation';
 import { formatDate } from '../utils/formatters';
 import { useSortableData } from '../utils/useSortableData';
+import { Pagination } from './Pagination';
+import { usePagination } from '../utils/usePagination';
 
 interface AirlinesTableProps {
   airlines: AirlineAirspace[];
@@ -12,11 +14,22 @@ export function AirlinesTable({ airlines }: AirlinesTableProps) {
     'activeAircraftCount'
   );
 
+  // Slice the sorted list into pages of 10
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    setCurrentPage,
+    totalItems,
+    itemsPerPage,
+  } = usePagination(sortedItems, 10);
+
   if (airlines.length === 0) {
     return <div className="empty-state">No matching airlines found.</div>;
   }
 
   return (
+    <>
     <table className="data-table">
       <thead>
         <tr>
@@ -38,7 +51,7 @@ export function AirlinesTable({ airlines }: AirlinesTableProps) {
         </tr>
       </thead>
       <tbody>
-        {sortedItems.map((airline) => (
+        {paginatedItems.map((airline) => (
           <tr key={`${airline.icaoCode}-${airline.snapshotDate}`}>
             <td>
               <span className="badge">{airline.icaoCode}</span>
@@ -51,5 +64,14 @@ export function AirlinesTable({ airlines }: AirlinesTableProps) {
         ))}
       </tbody>
     </table>
+
+    <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
+    </>
   );
 }

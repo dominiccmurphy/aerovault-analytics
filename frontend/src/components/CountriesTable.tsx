@@ -1,6 +1,8 @@
 import type { CountryAirspace } from '../types/aviation';
 import { formatDate } from '../utils/formatters';
 import { useSortableData } from '../utils/useSortableData';
+import { Pagination } from './Pagination';
+import { usePagination } from '../utils/usePagination';
 
 interface CountriesTableProps {
   countries: CountryAirspace[];
@@ -12,11 +14,22 @@ export function CountriesTable({ countries }: CountriesTableProps) {
     'activeAircraftCount'
   );
 
+  // Slice the sorted list into pages of 10
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    setCurrentPage,
+    totalItems,
+    itemsPerPage,
+  } = usePagination(sortedItems, 10);
+
   if (countries.length === 0) {
     return <div className="empty-state">No matching countries found.</div>;
   }
 
   return (
+    <>
     <table className="data-table">
       <thead>
         <tr>
@@ -35,7 +48,7 @@ export function CountriesTable({ countries }: CountriesTableProps) {
         </tr>
       </thead>
       <tbody>
-        {sortedItems.map((country) => (
+        {paginatedItems.map((country) => (
           <tr key={`${country.originCountry}-${country.snapshotDate}`}>
             <td><strong>{country.originCountry}</strong></td>
             <td>{country.activeAircraftCount.toLocaleString()}</td>
@@ -45,5 +58,14 @@ export function CountriesTable({ countries }: CountriesTableProps) {
         ))}
       </tbody>
     </table>
+
+    <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
+    </>
   );
 }

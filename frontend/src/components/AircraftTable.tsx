@@ -1,5 +1,7 @@
 import type { AircraftModel } from '../types/aviation';
 import { useSortableData } from '../utils/useSortableData';
+import { Pagination } from './Pagination';
+import { usePagination } from '../utils/usePagination';
 
 interface AircraftTableProps {
   models: AircraftModel[];
@@ -12,11 +14,22 @@ export function AircraftTable({ models, onSelectAircraft }: AircraftTableProps) 
       'modelName'
     );
 
+  // Slice the sorted list into pages of 10
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems,
+    setCurrentPage,
+    totalItems,
+    itemsPerPage,
+  } = usePagination(sortedItems, 10);
+
   if (models.length === 0) {
     return <div className="empty-state">No matching aircraft models found.</div>;
   }
 
   return (
+    <>
     <table className="data-table">
       <thead>
         <tr>
@@ -44,7 +57,7 @@ export function AircraftTable({ models, onSelectAircraft }: AircraftTableProps) 
         </tr>
       </thead>
       <tbody>
-        {sortedItems.map((model) => (
+        {paginatedItems.map((model) => (
           <tr
             key={model.modelId}
             className="clickable-row"
@@ -63,5 +76,14 @@ export function AircraftTable({ models, onSelectAircraft }: AircraftTableProps) 
         ))}
       </tbody>
     </table>
+
+    <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+      />
+    </>
   );
 }
