@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { AirlineAirspace } from '../types/aviation';
 import { formatDate } from '../utils/formatters';
 import { useSortableData } from '../utils/useSortableData';
@@ -13,6 +14,8 @@ export function AirlinesTable({ airlines }: AirlinesTableProps) {
     airlines,
     'activeAircraftCount'
   );
+
+  const navigate = useNavigate();
 
   // Slice the sorted list into pages of 10
   const {
@@ -52,7 +55,7 @@ export function AirlinesTable({ airlines }: AirlinesTableProps) {
       </thead>
       <tbody>
         {paginatedItems.map((airline) => (
-          <tr key={`${airline.icaoCode}-${airline.snapshotDate}`}>
+          <tr key={`${airline.icaoCode}-${airline.snapshotDate}`} className="clickable-row" onClick={() => navigate(`/airlines/${airline.icaoCode}`)}>
             <td>
               <span className="badge">{airline.icaoCode}</span>
             </td>
