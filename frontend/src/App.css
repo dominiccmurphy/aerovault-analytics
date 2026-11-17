@@ -192,3 +192,14 @@
   text-align: center;
   color: #94a3b8;
 }
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none; /* Prevents accidental text highlighting on double-clicks */
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.sortable-th:hover {
+  color: #38bdf8;
+  background-color: #1e293b;
+}
