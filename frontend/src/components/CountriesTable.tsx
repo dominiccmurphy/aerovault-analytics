@@ -1,7 +1,7 @@
 import type { CountryAirspace } from '../types/aviation';
 import { formatDate } from '../utils/formatters';
 import { useSortableData } from '../utils/useSortableData';
-import { Pagination } from './Pagination';
+import { Pagination } from './TablePagination';
 import { usePagination } from '../utils/usePagination';
 
 interface CountriesTableProps {

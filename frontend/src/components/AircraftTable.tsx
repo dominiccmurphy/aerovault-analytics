@@ -1,6 +1,6 @@
 import type { AircraftModel } from '../types/aviation';
 import { useSortableData } from '../utils/useSortableData';
-import { Pagination } from './Pagination';
+import { Pagination } from './TablePagination';
 import { usePagination } from '../utils/usePagination';
 
 interface AircraftTableProps {
