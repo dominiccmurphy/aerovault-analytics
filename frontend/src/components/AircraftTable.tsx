@@ -3,9 +3,10 @@ import { useSortableData } from '../utils/useSortableData';
 
 interface AircraftTableProps {
   models: AircraftModel[];
+  onSelectAircraft: (model: AircraftModel) => void;
 }
 
-export function AircraftTable({ models }: AircraftTableProps) {
+export function AircraftTable({ models, onSelectAircraft }: AircraftTableProps) {
   const { sortedItems, requestSort, getSortArrow } = useSortableData(
       models,
       'modelName'
@@ -44,7 +45,11 @@ export function AircraftTable({ models }: AircraftTableProps) {
       </thead>
       <tbody>
         {sortedItems.map((model) => (
-          <tr key={model.modelId}>
+          <tr
+            key={model.modelId}
+            className="clickable-row"
+            onClick={() => onSelectAircraft(model)}
+          >
             <td>{model.manufacturer}</td>
             <td><strong>{model.modelName}</strong></td>
             <td>

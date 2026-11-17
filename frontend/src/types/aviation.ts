@@ -21,9 +21,9 @@ export interface AircraftModel {
   aircraftClass: string;
   maxSpeedKnots: number;
   maxRangeNm: number;
-  passengerCapacity: number;
+  passengerCapacity: number | null;
   priceMillionsUsd: number;
-  costPerSeatMillionsUsd: number;
+  costPerSeatMillionsUsd: number | null;
 }
 
 export type TabOption = 'airlines' | 'countries' | 'aircraft';

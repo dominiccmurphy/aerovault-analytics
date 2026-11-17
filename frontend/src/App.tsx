@@ -10,7 +10,7 @@ import { KpiGrid } from './components/KpiGrid';
 import { AirlinesTable } from './components/AirlinesTable';
 import { CountriesTable } from './components/CountriesTable';
 import { AircraftTable } from './components/AircraftTable';
-
+import { AircraftModal } from './components/AircraftModal';
 
 function App() {
   
@@ -22,6 +22,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabOption>('airlines');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedAircraft, setSelectedAircraft] = useState<AircraftModel | null>(null);
 
   useEffect(() => {
     const baseUrl = 'http://localhost:5000/api';
@@ -135,11 +136,18 @@ function App() {
               <CountriesTable countries={filteredCountries} />
             )}
             {activeTab === 'aircraft' && (
-              <AircraftTable models={filteredAircraft} />
+              <AircraftTable models={filteredAircraft} onSelectAircraft={setSelectedAircraft} />
             )}
           </>
         )}
       </section>
+
+      {selectedAircraft && (
+        <AircraftModal
+          aircraft={selectedAircraft}
+          onClose={() => setSelectedAircraft(null)}
+        />
+      )}
     </div>
   );
 }
