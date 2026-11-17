@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { AircraftModel } from '../types/aviation';
 
 interface AircraftModalProps {
@@ -6,6 +7,23 @@ interface AircraftModalProps {
 }
 
 export function AircraftModal({ aircraft, onClose }: AircraftModalProps) {
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    // Start listening when the modal mounts
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup function: stop listening when the modal unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
   return (
     /* Clicking the dark backdrop closes the modal */
     <div className="modal-backdrop" onClick={onClose}>
