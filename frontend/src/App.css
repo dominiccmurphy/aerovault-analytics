@@ -371,3 +371,30 @@
   border-color: #38bdf8;
   font-weight: 600;
 }
+
+/* 2x2 Responsive Grid for Visual Analytics Charts */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 1.5rem;
+}
+
+.chart-card {
+  background-color: #111827;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+}
+
+.chart-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 0.25rem;
+}
+
+.chart-subtitle {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-bottom: 1.25rem;
+}
