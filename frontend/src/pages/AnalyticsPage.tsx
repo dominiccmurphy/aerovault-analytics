@@ -87,7 +87,7 @@ export function AnalyticsPage({
         <h3 className="chart-title">Top 10 Airlines by Active Aircraft</h3>
         <p className="chart-subtitle">Live airborne fleet count per carrier</p>
 
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={300}>
           <BarChart
             data={topAirlines}
             layout="vertical"
@@ -126,7 +126,7 @@ export function AnalyticsPage({
         <h3 className="chart-title">Airspace Share by Origin Country</h3>
         <p className="chart-subtitle">Top 5 countries vs. rest of world</p>
 
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
               data={countryBreakdown}
@@ -155,38 +155,38 @@ export function AnalyticsPage({
       <div className="chart-card">
         <h3 className="chart-title">Aircraft Range (nm) vs Unit Price ($M)</h3>
 
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={300}>
           <ScatterChart margin={{ top: 15, right: 25, left: 25, bottom: 25 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
             <XAxis
               type="number"
               dataKey="maxRangeNm"
-              name="Max Range (nm)"
+              name="Max Range"
               unit=" nm"
               stroke="#94a3b8"
-              fontSize={12}
+              tick={{ fill: '#94a3b8', fontSize: 12 }}
               label={{
                 value: 'Max Range (nm)',
                 position: 'insideBottom',
                 offset: -15,
-                fill: '#94a3b8',
+                fill: '#e2e8f0',
                 fontSize: 12,
               }}
             />
             <YAxis
               type="number"
               dataKey="priceMillionsUsd"
-              name="Unit Price ($M)"
+              name="Unit Price"
               unit="M"
               stroke="#94a3b8"
-              fontSize={12}
+              tick={{ fill: '#94a3b8', fontSize: 12 }}
               label={{
                 value: 'Unit Price ($M)',
                 angle: -90,
                 position: 'insideLeft',
                 offset: -10,
                 style: { textAnchor: 'middle' },
-                fill: '#94a3b8',
+                fill: '#e2e8f0',
                 fontSize: 12,
               }}
             />
@@ -218,40 +218,40 @@ export function AnalyticsPage({
       {/* CHART 4: Average Cruise Velocity by Airline */}
       <div className="chart-card">
         <h3 className="chart-title">Average Cruise Velocity by Airline (m/s)</h3>
-        <p className="chart-subtitle">Average Cruise Velocity for Top 5 Airlines</p>
 
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={300}>
           <BarChart
             data={topAvgCruiseVelocityAirlines}
             layout="horizontal"
             margin={{ top: 24, right: 25, left: 20, bottom: 15 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={true} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
             <XAxis
               type="category"
               dataKey="airlineName"
               stroke="#e2e8f0"
-              fontSize={12}
-              height="auto"
+              tick={{ fill: '#e2e8f0', fontSize: 12 }}
               label={{
                 value: 'Airline',
-                style: { textAnchor: 'middle' },
-                angle: 0,
                 position: 'insideBottom',
-                offset: 0,
+                offset: -12,
+                fill: '#e2e8f0',
+                fontSize: 12,
               }} 
             />
             <YAxis 
               type="number" 
               stroke="#94a3b8" 
-              fontSize={12} 
+              tick={{ fill: '#94a3b8', fontSize: 12 }}
               label={{
                 value: 'Average (m/s)',
-                style: { textAnchor: 'middle' },
                 angle: -90,
-                position: 'left',
-                offset: 0,
-              }} 
+                position: 'insideLeft',
+                offset: -10,
+                style: { textAnchor: 'middle' },
+                fill: '#e2e8f0',
+                fontSize: 12,
+              }}
             />
             <Tooltip
               cursor={{ fill: '#1e293b' }}
@@ -268,7 +268,12 @@ export function AnalyticsPage({
               name="Average Cruise Velocity (m/s)"
               fill="#38bdf8"
               radius={[4, 4, 0, 0]}
-              label={{fontSize: 12, color: '#f8fafc', position: 'top', formatter: (x) => `${Number(x).toFixed(1)} (m/s)` }}
+              label={{
+                fontSize: 10,
+                fill: '#f8fafc',
+                position: 'top',
+                formatter: (x) => `${Number(x).toFixed(1)} m/s`,
+              }}
             />
           </BarChart>
         </ResponsiveContainer>
