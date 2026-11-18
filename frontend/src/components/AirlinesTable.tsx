@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import type { AirlineAirspace } from '../types/aviation';
 import { formatDate } from '../utils/formatters';
 import { useSortableData } from '../utils/useSortableData';
-import { Pagination } from './TablePagination';
+import { TablePagination } from './TablePagination';
 import { usePagination } from '../utils/usePagination';
 
 interface AirlinesTableProps {
@@ -68,7 +68,7 @@ export function AirlinesTable({ airlines }: AirlinesTableProps) {
       </tbody>
     </table>
 
-    <Pagination
+    <TablePagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalItems={totalItems}

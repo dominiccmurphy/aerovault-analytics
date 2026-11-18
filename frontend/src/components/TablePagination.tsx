@@ -1,4 +1,4 @@
-interface PaginationProps {
+interface TablePaginationProps {
   currentPage: number;
   totalPages: number;
   totalItems: number;
@@ -6,13 +6,13 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function Pagination({
+export function TablePagination({
   currentPage,
   totalPages,
   totalItems,
   itemsPerPage,
   onPageChange,
-}: PaginationProps) {
+}: TablePaginationProps) {
   if (totalItems === 0) return null;
 
   const startItem = (currentPage - 1) * itemsPerPage + 1;

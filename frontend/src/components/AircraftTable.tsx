@@ -1,6 +1,6 @@
 import type { AircraftModel } from '../types/aviation';
 import { useSortableData } from '../utils/useSortableData';
-import { Pagination } from './TablePagination';
+import { TablePagination } from './TablePagination';
 import { usePagination } from '../utils/usePagination';
 
 interface AircraftTableProps {
@@ -77,7 +77,7 @@ export function AircraftTable({ models, onSelectAircraft }: AircraftTableProps) 
       </tbody>
     </table>
 
-    <Pagination
+    <TablePagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalItems={totalItems}
