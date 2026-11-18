@@ -26,4 +26,15 @@ export interface AircraftModel {
   costPerSeatMillionsUsd: number | null;
 }
 
+export interface CreateCommercialPayload {
+  modelId: number;
+  passengerCapacity: number | null;
+  priceMillionsUsd: number | null;
+}
+
+export interface UpdateCommercialPayload {
+  passengerCapacity: number | null;
+  priceMillionsUsd: number | null;
+}
+
 export type TabOption = 'airlines' | 'countries' | 'aircraft';

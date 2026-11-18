@@ -398,3 +398,24 @@
   color: #94a3b8;
   margin-bottom: 1.25rem;
 }
+
+.delete-btn {
+  background-color: #450a0a;
+  color: #fca5a5;
+  border: 1px solid #7f1d1d;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background-color: #7f1d1d;
+  color: #f8fafc;
+}
+
+.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

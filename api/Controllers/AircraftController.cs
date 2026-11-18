@@ -4,7 +4,7 @@ using Npgsql;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AircraftController(NpgsqlDataSource dataSource) : ControllerBase
+public class AircraftController(NpgsqlDataSource dataSource, ILogger<AircraftController> logger) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] string? manufacturer)
