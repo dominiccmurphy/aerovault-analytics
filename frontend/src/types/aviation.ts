@@ -1,3 +1,13 @@
+export interface AuditLogEntry {
+  auditId: number;
+  tableName: string;
+  recordKey: string;
+  action: 'INSERT' | 'UPDATE' | 'DELETE';
+  oldValues: string | null;
+  newValues: string | null;
+  changedAt: string;
+}
+
 export interface AirlineAirspace {
   snapshotDate: string;
   icaoCode: string;
@@ -22,7 +32,7 @@ export interface AircraftModel {
   maxSpeedKnots: number;
   maxRangeNm: number;
   passengerCapacity: number | null;
-  priceMillionsUsd: number;
+  priceMillionsUsd: number | null;
   costPerSeatMillionsUsd: number | null;
 }
 

@@ -84,3 +84,70 @@ SELECT
     ,als.avg_velocity_ms            AS avg_velocity_ms
 FROM
     live_airspace_snapshots als;
+
+
+
+-- 1. Generic, reusable audit log table
+CREATE TABLE IF NOT EXISTS audit_logs (
+    audit_id SERIAL PRIMARY KEY,
+    table_name VARCHAR(100) NOT NULL,
+    record_key VARCHAR(150) NOT NULL,
+    action VARCHAR(10) NOT NULL, -- 'INSERT', 'UPDATE', or 'DELETE'
+    old_values JSONB NULL,
+    new_values JSONB NULL,
+    changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. Trigger function that captures OLD and NEW snapshots as JSONB
+CREATE OR REPLACE FUNCTION fn_audit_commercial_specs()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        INSERT INTO audit_logs (table_name, record_key, action, old_values, new_values)
+        VALUES (
+            TG_TABLE_NAME,
+            NEW.model_name,
+            'INSERT',
+            NULL,
+            to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+        -- Only log if commercial values actually changed
+        IF (OLD.passenger_capacity IS DISTINCT FROM NEW.passenger_capacity
+            OR OLD.price_millions_usd IS DISTINCT FROM NEW.price_millions_usd) THEN
+            INSERT INTO audit_logs (table_name, record_key, action, old_values, new_values)
+            VALUES (
+                TG_TABLE_NAME,
+                NEW.model_name,
+                'UPDATE',
+                to_jsonb(OLD),
+                to_jsonb(NEW)
+            );
+        END IF;
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO audit_logs (table_name, record_key, action, old_values, new_values)
+        VALUES (
+            TG_TABLE_NAME,
+            OLD.model_name,
+            'DELETE',
+            to_jsonb(OLD),
+            NULL
+        );
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Attach the trigger to aircraft_commercial_specs
+DROP TRIGGER IF EXISTS trg_audit_commercial_specs ON aircraft_commercial_specs;
+
+CREATE TRIGGER trg_audit_commercial_specs
+AFTER INSERT OR UPDATE OR DELETE ON aircraft_commercial_specs
+FOR EACH ROW
+EXECUTE FUNCTION fn_audit_commercial_specs();

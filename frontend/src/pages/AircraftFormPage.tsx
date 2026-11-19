@@ -11,62 +11,73 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
   // 1. If URL is /manage/edit/5, id is "5". If /manage/new, id is undefined.
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isEditMode = Boolean(id) && items.find((item) => item.modelId === Number(id) && (item.priceMillionsUsd != null || item.passengerCapacity != null));
 
-  // Find the existing item when editing
-  const existingItem = isEditMode
-    ? items.find((item) => item.modelId === Number(id))
-    : undefined;
+  const isEditMode = location.pathname.includes('/edit/');
+  const modelId = Number(id);
 
-  //const [name, setName] = useState('');
-  const [passengerCapacityVal, setPassengerCapacityVal] = useState('');
-  const [priceMillionsUsdVal, setPriceMillionsUsdVal] = useState('');
+  const aircraft = items.find((m) => m.modelId === modelId);
+
+  const [passengerCapacity, setPassengerCapacity] = useState('');
+  const [priceMillionsUsd, setPriceMillionsUsd] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 2. Populate form fields once existingItem is available
-  // (This also handles page refreshes on /manage/edit/:id once App.tsx finishes fetching!)
   useEffect(() => {
-    if (existingItem) {
-      //setName(existingItem.modelName);
-      setPriceMillionsUsdVal(existingItem.priceMillionsUsd != null ? String(existingItem.priceMillionsUsd) : '');
-      setPassengerCapacityVal(existingItem.passengerCapacity != null ? String(existingItem.passengerCapacity) : '');
+    if (aircraft && isEditMode) {
+      setPassengerCapacity(aircraft.passengerCapacity != null ? String(aircraft.passengerCapacity) : '');
+      setPriceMillionsUsd(aircraft.priceMillionsUsd != null ? String(aircraft.priceMillionsUsd) : '');
     }
-  }, [existingItem]);
+  }, [aircraft, isEditMode]);
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
+
+    const parsedSeats = passengerCapacity === '' ? null : Number(passengerCapacity);
+    const parsedPrice = priceMillionsUsd === '' ? null : Number(priceMillionsUsd);
 
     const baseUrl = 'http://localhost:5000/api';
     const url = isEditMode ? `${baseUrl}/aircraftcommercial/${id}` : `${baseUrl}/aircraftcommercial`;
     const method = isEditMode ? 'PUT' : 'POST';
 
-    const payload : UpdateCommercialPayload | CreateCommercialPayload = isEditMode ? {
-      passengerCapacity: passengerCapacityVal === '' ? null : Number(passengerCapacityVal),
-      priceMillionsUsd: priceMillionsUsdVal === '' ? null: Number(priceMillionsUsdVal)
-    } : {
-      modelId: Number(id),
-      passengerCapacity: passengerCapacityVal === '' ? null : Number(passengerCapacityVal),
-      priceMillionsUsd: priceMillionsUsdVal === '' ? null: Number(priceMillionsUsdVal)
-    } ;
+    const payload: CreateCommercialPayload | UpdateCommercialPayload = isEditMode
+      ? { passengerCapacity: parsedSeats, priceMillionsUsd: parsedPrice }
+      : { modelId, passengerCapacity: parsedSeats, priceMillionsUsd: parsedPrice };
 
-    const response = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (response.ok) {
+      if (!response.ok) {
+        throw new Error(`Save failed (HTTP ${response.status})`);
+      }
+
       const savedRecord: AircraftModel = await response.json();
-      onSaved(savedRecord); // Update master state in App.tsx
-      navigate('/manage');   // Redirect back to the list page!
+      onSaved(savedRecord);
+      navigate('/manage');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save commercial specs.');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   // Guard against direct URL refresh while App.tsx is still loading items
   if (isEditMode && items.length === 0) {
     return <div className="empty-state">Loading record details...</div>;
+  }
+
+  if (!aircraft) {
+    return (
+      <div className="empty-state">
+        <p style={{ marginBottom: '1rem' }}>Aircraft model #{id} not found.</p>
+        <Link to="/manage" className="nav-link">← Back to Manage Fleet</Link>
+      </div>
+    );
   }
 
   return (
@@ -78,20 +89,29 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
       </div>
 
       <div className="kpi-card">
-        <h2 style={{ marginBottom: '1.25rem' }}>
-          {isEditMode ? `Edit Commercial Record #${id}: ${existingItem?.manufacturer} ${existingItem?.modelName}` : 'Add Commercial Record'}
+        <span className="badge">{aircraft.aircraftClass}</span>
+        <h2 style={{ marginTop: '0.5rem', marginBottom: '0.25rem' }}>
+          {isEditMode ? 'Edit Commercial Specs' : 'Add Commercial Specs'}
         </h2>
+        <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>
+          {aircraft.manufacturer} <strong>{aircraft.modelName}</strong> &bull; Max Range:{' '}
+          {aircraft.maxRangeNm.toLocaleString()} nm
+        </p>
+
+        {error && <div className="error-banner">{error}</div>}
 
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
           <div>
-            <label className="kpi-label" style={{ display: 'block' }}>Passenger Capacity</label>
+            <label className="kpi-label" style={{ display: 'block' }}>Passenger Capacity (Seats)</label>
             <input
               type="number"
-              step="any"
+              min="0"
+              step="1"
               className="search-input"
               style={{ width: '100%' }}
-              value={passengerCapacityVal}
-              onChange={(e) => setPassengerCapacityVal(e.target.value)}
+              placeholder="e.g. 180 (leave blank for cargo/unknown)"
+              value={passengerCapacity}
+              onChange={(e) => setPassengerCapacity(e.target.value)}
               required
             />
           </div>
@@ -100,18 +120,20 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
             <label className="kpi-label" style={{ display: 'block' }}>Price ($M)</label>
             <input
               type="number"
-              step="any"
+              min="0"
+              step="0.01"
               className="search-input"
               style={{ width: '100%' }}
-              value={priceMillionsUsdVal}
-              onChange={(e) => setPriceMillionsUsdVal(e.target.value)}
+              placeholder="e.g. 115.50"
+              value={priceMillionsUsd}
+              onChange={(e) => setPriceMillionsUsd(e.target.value)}
               required
             />
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
             <button type="submit" className="tab-btn active" disabled={submitting}>
-              {submitting ? 'Saving...' : isEditMode ? 'Save Changes' : 'Create Record'}
+              {submitting ? 'Saving...' : isEditMode ? 'Save Changes' : 'Add Commercial Specs'}
             </button>
             <Link to="/manage" className="page-btn" style={{ textDecoration: 'none' }}>
               Cancel

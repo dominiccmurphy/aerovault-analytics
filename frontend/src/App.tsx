@@ -11,6 +11,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AirlineDetailPage } from './pages/AirlineDetailPage';
 import { ManageAircraftPage } from './pages/ManageAircraftPage';
 import { AircraftFormPage } from './pages/AircraftFormPage';
+import { AuditLogPage } from './pages/AuditLogPage';
 
 function App() {
   
@@ -21,18 +22,25 @@ function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleItemAdded = (newItem: AircraftModel) => {
-    setAircraftModels((prev) => [...prev, newItem]);
-  };
-
-  const handleItemUpdated = (updatedItem: AircraftModel) => {
+  const handleCommercialSaved = (updatedModel: AircraftModel) => {
     setAircraftModels((prev) =>
-      prev.map((item) => (item.modelId === updatedItem.modelId ? updatedItem : item))
+      prev.map((item) => (item.modelId === updatedModel.modelId ? updatedModel : item))
     );
   };
 
-  const handleAircraftDeleted = (deletedId: number) => {
-    setAircraftModels((prev) => prev.filter((item) => item.modelId !== deletedId));
+  const handleAircraftDeleted = (modelId: number) => {
+    setAircraftModels((prev) =>
+      prev.map((item) =>
+        item.modelId === modelId
+          ? {
+              ...item,
+              passengerCapacity: null,
+              priceMillionsUsd: null,
+              costPerSeatMillionsUsd: null,
+            }
+          : item
+      )
+    );
   };
 
   useEffect(() => {
@@ -74,6 +82,9 @@ function App() {
             <NavLink to="/manage" className="nav-link">
               Manage Fleet
             </NavLink>
+            <NavLink to="/audit" className="nav-link">
+              Audit Log
+            </NavLink>
           </nav>
 
           <span className="status-pill">
@@ -85,6 +96,7 @@ function App() {
 
         {/* SPA Route Switcher */}
         <Routes>
+          <Route path="/audit" element={<AuditLogPage />} />
           <Route
             path="/"
             element={
@@ -126,13 +138,13 @@ function App() {
           {/* CREATE mode: id from useParams() will be undefined */}
           <Route
             path="/manage/new/:id"
-            element={<AircraftFormPage items={aircraftModels} onSaved={handleItemAdded} />}
+            element={<AircraftFormPage items={aircraftModels} onSaved={handleCommercialSaved} />}
           />
 
           {/* EDIT mode: id from useParams() will be the record's ID string */}
           <Route
             path="/manage/edit/:id"
-            element={<AircraftFormPage items={aircraftModels} onSaved={handleItemUpdated} />}
+            element={<AircraftFormPage items={aircraftModels} onSaved={handleCommercialSaved} />}
           />
         </Routes>
       </div>

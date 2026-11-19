@@ -86,6 +86,7 @@ export function ManageAircraftPage({
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 
+      {/*
         <Link
           to="/manage/new"
           className="tab-btn active"
@@ -93,6 +94,7 @@ export function ManageAircraftPage({
         >
           + Add Aircraft Model
         </Link>
+      */}
       </section>
 
       {deleteError && <div className="error-banner">{deleteError}</div>}
