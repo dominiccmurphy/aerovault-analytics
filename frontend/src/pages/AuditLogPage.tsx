@@ -103,6 +103,7 @@ export function AuditLogPage() {
               <thead>
                 <tr>
                   <th>Timestamp</th>
+                  <th>Table</th>
                   <th>Action</th>
                   <th>Aircraft Model</th>
                   <th>What Changed</th>
@@ -112,6 +113,9 @@ export function AuditLogPage() {
                 {paginatedItems.map((log) => (
                   <tr key={log.auditId}>
                     <td>{new Date(log.changedAt).toLocaleString()}</td>
+                    <td>
+                      {log.tableName}
+                    </td>
                     <td>
                       <span className="badge">{log.action}</span>
                     </td>
