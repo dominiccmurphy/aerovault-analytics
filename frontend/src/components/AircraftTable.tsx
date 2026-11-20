@@ -71,7 +71,7 @@ export function AircraftTable({ models, onSelectAircraft }: AircraftTableProps) 
             <td>{model.maxSpeedKnots} kts</td>
             <td>{model.maxRangeNm.toLocaleString()} nm</td>
             <td>{model.passengerCapacity}</td>
-            <td>${model.priceMillionsUsd.toFixed(1)}M</td>
+            <td>${model.priceMillionsUsd?.toFixed(1)}M</td>
           </tr>
         ))}
       </tbody>

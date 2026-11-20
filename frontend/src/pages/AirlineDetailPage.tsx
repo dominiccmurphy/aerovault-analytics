@@ -22,7 +22,7 @@ export function AirlineDetailPage({
     setLoading(true);
     setError(null);
 
-    const baseUrl = 'http://localhost:5000/api';
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
     fetch(`${baseUrl}/airspace/airlines/${icaoCode}`)
       .then((res) => {

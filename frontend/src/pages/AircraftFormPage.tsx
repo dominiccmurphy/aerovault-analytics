@@ -37,7 +37,7 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
     const parsedSeats = passengerCapacity === '' ? null : Number(passengerCapacity);
     const parsedPrice = priceMillionsUsd === '' ? null : Number(priceMillionsUsd);
 
-    const baseUrl = 'http://localhost:5000/api';
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const url = isEditMode ? `${baseUrl}/aircraftcommercial/${id}` : `${baseUrl}/aircraftcommercial`;
     const method = isEditMode ? 'PUT' : 'POST';
 

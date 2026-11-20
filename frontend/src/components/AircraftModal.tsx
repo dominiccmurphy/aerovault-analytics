@@ -65,7 +65,7 @@ export function AircraftModal({ aircraft, onClose }: AircraftModalProps) {
 
           <div className="spec-item">
             <div className="spec-label">Unit List Price</div>
-            <div className="spec-value">${aircraft.priceMillionsUsd.toFixed(1)}M</div>
+            <div className="spec-value">${aircraft.priceMillionsUsd?.toFixed(1)}M</div>
           </div>
 
           <div className="spec-item" style={{ gridColumn: '1 / -1' }}>

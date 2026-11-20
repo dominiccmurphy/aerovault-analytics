@@ -27,6 +27,7 @@ export function LiveMapPage({
       setLastUpdated(new Date());
     }
 
+
     eventSource.onerror = () => {
       // Browser automatically retries on transient errors;
       // avoid logging noisy errors if cleanup already closed it
@@ -38,6 +39,7 @@ export function LiveMapPage({
    
   return (
     <>
+    <p>{connectionStatus} - {lastUpdated?.toLocaleTimeString()}</p>
       <MapContainer
         center={[57.4778, -4.2247]}
         zoom={8}
