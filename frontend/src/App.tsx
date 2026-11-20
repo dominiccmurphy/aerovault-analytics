@@ -12,6 +12,7 @@ import { AirlineDetailPage } from './pages/AirlineDetailPage';
 import { ManageAircraftPage } from './pages/ManageAircraftPage';
 import { AircraftFormPage } from './pages/AircraftFormPage';
 import { AuditLogPage } from './pages/AuditLogPage';
+import { LiveMapPage } from './pages/LiveMapPage';
 
 function App() {
   
@@ -85,6 +86,9 @@ function App() {
             <NavLink to="/audit" className="nav-link">
               Audit Log
             </NavLink>
+            <NavLink to="/radar" className="nav-link">
+              Live Radar
+            </NavLink>
           </nav>
 
           <span className="status-pill">
@@ -146,6 +150,7 @@ function App() {
             path="/manage/edit/:id"
             element={<AircraftFormPage items={aircraftModels} onSaved={handleCommercialSaved} />}
           />
+          <Route path="/radar" element={<LiveMapPage />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -48,3 +48,14 @@ export interface UpdateCommercialPayload {
 }
 
 export type TabOption = 'airlines' | 'countries' | 'aircraft';
+
+export interface LiveFlight {
+  icao24: string;
+  callsign: string;
+  originCountry: string;
+  latitude: number;
+  longitude: number;
+  baroAltitudeMeters: number | null;
+  velocityMs: number | null;
+  trueTrackDegrees: number;
+}

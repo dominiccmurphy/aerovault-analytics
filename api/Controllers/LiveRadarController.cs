@@ -16,7 +16,7 @@ public class OpenSkyResponse
 
 [ApiController]
 [Route("api/[controller]")]
-public class LiveRadarController(NpgsqlDataSource dataSource, ILogger<AircraftController> logger) : ControllerBase
+public class LiveRadarController(ILogger<LiveFlightDto> logger) : ControllerBase
 {
     [HttpGet("stream")]
     public async Task Get(CancellationToken cancellationToken)
@@ -25,7 +25,12 @@ public class LiveRadarController(NpgsqlDataSource dataSource, ILogger<AircraftCo
         Response.Headers.CacheControl = "no-cache";
         Response.Headers.Connection = "keep-alive";   
 
-        var boundingBox = "lamin=50.0&lomin=-2.0&lamax=53.5&lomax=4.5";
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        var boundingBox = "lamin=56.5&lomin=-6.0&lamax=59.0&lomax=-2.0";
 
         var url = $"https://opensky-network.org/api/states/all?{boundingBox}";
 
@@ -38,30 +43,26 @@ public class LiveRadarController(NpgsqlDataSource dataSource, ILogger<AircraftCo
                 using (HttpClient client = new HttpClient())
                 {
                     var response = await client.GetAsync(url, cancellationToken);
-                    logger.LogInformation("Getting response from: {s}", url);
 
                     if (response.IsSuccessStatusCode)
                     {
-                        logger.LogInformation("Response not null");
                         var jsonString = await response.Content.ReadAsStringAsync();
                         var data = JsonSerializer.Deserialize<OpenSkyResponse>(jsonString);
-                        logger.LogInformation("Deserialized data: {s}", jsonString);
                         if (data?.States != null)
                         {
                             for (int i = 0; i < data.States.Count; i++)
                             {
                                 var flight = data.States[i];
                                 // Access specific elements by index and convert to their types
-                                string icao24 = flight[0].GetString(); // "a"
-                                string callsign = flight[1].GetString()?.Trim();
-                                string origin_country = flight[2].GetString();
-                                double longitude = flight[5].ValueKind != JsonValueKind.Null ? flight[5].GetDouble() : 0.0;
-                                double latitude = flight[6].ValueKind != JsonValueKind.Null ? flight[6].GetDouble() : 0.0;
+                                string icao24 = flight[0].GetString() ?? ""; // "a"
+                                string callsign = flight[1].GetString()?.Trim() ?? icao24;
+                                string origin_country = flight[2].GetString() ?? "Unknown";
+                                double longitude = flight[5].GetDouble();
+                                double latitude = flight[6].GetDouble();
                                 double? baro_altitude = flight[7].ValueKind != JsonValueKind.Null ? flight[7].GetDouble() : null;
                                 double? velocity = flight[9].ValueKind != JsonValueKind.Null ? flight[9].GetDouble() : null;
                                 double track = flight[10].ValueKind != JsonValueKind.Null ? flight[10].GetDouble() : 0.0;
                                 
-                                logger.LogInformation("Reading finished");
                                 liveFlights.Add(
                                     new LiveFlightDto(
                                         icao24, callsign, origin_country, 
@@ -70,17 +71,23 @@ public class LiveRadarController(NpgsqlDataSource dataSource, ILogger<AircraftCo
                                 );
                             }
                         }
-                        var json = JsonSerializer.Serialize(liveFlights, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
+                        // Send ONE complete batch after the loop finishes
+                        
+                        var json = JsonSerializer.Serialize(liveFlights, jsonOptions);
                         await Response.WriteAsync($"data: {json}\n\n", cancellationToken);
                         await Response.Body.FlushAsync(cancellationToken);
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
             catch (Exception ex)
             {
-                
+                logger.LogError(ex, "Failed to fetch or stream OpenSky data.");
             }
+
             try
             {
                 await timer.WaitForNextTickAsync(cancellationToken);
@@ -91,8 +98,5 @@ public class LiveRadarController(NpgsqlDataSource dataSource, ILogger<AircraftCo
             }
 
         }
-        
-        
-        return;
     }
 }

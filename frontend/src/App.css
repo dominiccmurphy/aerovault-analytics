@@ -419,3 +419,7 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.leaflet-tile-pane {
+  filter: brightness(75%) contrast(100%);
+}
