@@ -61,6 +61,7 @@ def extract_aircraft_data(**context):
 def transform_aircraft_data(**context):
     output_dir = context["ti"].xcom_pull(task_ids="extract_task")
 
+    conn = None
     try:
         with get_connection() as conn:
             with conn.cursor() as cursor:
@@ -68,7 +69,8 @@ def transform_aircraft_data(**context):
                 # Creates e.g. {'boeing': 1, 'airbus': 2, 'embraer': 3, 'piper': 4}
                 manufacturer_map = {name.lower(): m_id for m_id, name in cursor.fetchall()}
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
     data = []
     file_path = Path(f"{output_dir}/aircraft_models.json")
@@ -93,6 +95,7 @@ def load_aircraft_data(**context):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
+    conn = None
     try:
         with get_connection() as conn:
             with conn.cursor() as cursor:
@@ -124,7 +127,8 @@ def load_aircraft_data(**context):
                 if len(skipped_records) > 0:
                     logging.info("Skipped records due to unknown manufacturer: %s", len(skipped_records)) 
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
     shutil.rmtree(output_dir, ignore_errors=True)
     logging.info("Cleaned up run folder: %s", output_dir)

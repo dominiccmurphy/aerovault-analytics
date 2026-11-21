@@ -24,6 +24,15 @@ export function useSortableData<T>(
       const aVal = a[sortConfig.key];
       const bVal = b[sortConfig.key];
 
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        const comparison = aVal.localeCompare(bVal, undefined, { sensitivity: 'base' });
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      }
+
       if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;

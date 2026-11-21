@@ -4,13 +4,15 @@ using Npgsql;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AircraftCommercialController(NpgsqlDataSource dataSource, ILogger<AircraftController> logger) : ControllerBase
+public class AircraftCommercialController(NpgsqlDataSource dataSource, ILogger<AircraftCommercialController> logger) : ControllerBase
 {
-    // CREATE: POST /api/items
+    // CREATE: POST /api/aircraftcommercial
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAircraftCommercialDto dto)
     {
         await using var conn = await dataSource.OpenConnectionAsync();
+        await using var tx = await conn.BeginTransactionAsync();
+
         var rows = await conn.ExecuteAsync(
             @"INSERT INTO aircraft_commercial_specs (
                 manufacturer_id, model_name, passenger_capacity, price_millions_usd
@@ -18,25 +20,29 @@ public class AircraftCommercialController(NpgsqlDataSource dataSource, ILogger<A
             SELECT md.manufacturer_id, md.model_name, @PassengerCapacity, @PriceMillionsUsd
             FROM aircraft_models AS md
             WHERE md.model_id = @ModelId;",
-            new { dto.ModelId, dto.PassengerCapacity, dto.PriceMillionsUsd }
+            new { dto.ModelId, dto.PassengerCapacity, dto.PriceMillionsUsd },
+            transaction: tx
         );
 
         if (rows == 0) return NotFound();
 
         var fullModel = await conn.QuerySingleAsync<AircraftModelDto>(
             "SELECT * FROM vw_aircraft_analytics WHERE model_id = @ModelId;",
-            new { dto.ModelId }
+            new { dto.ModelId },
+            transaction: tx
         );
 
+        await tx.CommitAsync();
         return Ok(fullModel);
     }
 
-    // UPDATE: PUT /api/items/{id}
+    // UPDATE: PUT /api/aircraftcommercial/{id}
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAircraftCommercialDto dto)
     {
         logger.LogInformation("PUT /api/aircraftcommercial/{Id}: {@Dto}", id, dto);
         await using var conn = await dataSource.OpenConnectionAsync();
+        await using var tx = await conn.BeginTransactionAsync();
 
         var rows = await conn.ExecuteAsync(
             @"UPDATE aircraft_commercial_specs as c
@@ -48,20 +54,23 @@ public class AircraftCommercialController(NpgsqlDataSource dataSource, ILogger<A
                 md.model_name=c.model_name
                 AND md.manufacturer_id = c.manufacturer_id
                 AND md.model_id = @Id;",
-            new { Id = id, dto.PassengerCapacity, dto.PriceMillionsUsd}
+            new { Id = id, dto.PassengerCapacity, dto.PriceMillionsUsd},
+            transaction: tx
         );
 
         if (rows == 0) return NotFound();
 
         var fullModel = await conn.QuerySingleAsync<AircraftModelDto>(
             "SELECT * FROM vw_aircraft_analytics WHERE model_id = @ModelId;",
-            new { ModelId=id }
+            new { ModelId=id },
+            transaction: tx
         );
 
+        await tx.CommitAsync();
         return Ok(fullModel);
     }
 
-    // DELETE: DELETE /api/items/{id}
+    // DELETE: DELETE /api/aircraftcommercial/{id}
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

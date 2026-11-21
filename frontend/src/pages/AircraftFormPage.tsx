@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useParams, useNavigate, Link } from 'react-router-dom';
 import type { AircraftModel, CreateCommercialPayload, UpdateCommercialPayload } from '../types/aviation';
 
 interface AircraftFormPageProps {
@@ -11,8 +11,10 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
   // 1. If URL is /manage/edit/5, id is "5". If /manage/new, id is undefined.
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-  const isEditMode = location.pathname.includes('/edit/');
+  const isEditMode = pathname.includes('/edit/');
+
   const modelId = Number(id);
 
   const aircraft = items.find((m) => m.modelId === modelId);
@@ -36,6 +38,12 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
 
     const parsedSeats = passengerCapacity === '' ? null : Number(passengerCapacity);
     const parsedPrice = priceMillionsUsd === '' ? null : Number(priceMillionsUsd);
+
+    if (parsedSeats === null && parsedPrice === null) {
+      setError('Please enter at least a passenger capacity or a unit price.');
+      setSubmitting(false);
+      return;
+    }
 
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     const url = isEditMode ? `${baseUrl}/aircraftcommercial/${id}` : `${baseUrl}/aircraftcommercial`;
@@ -112,7 +120,6 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
               placeholder="e.g. 180 (leave blank for cargo/unknown)"
               value={passengerCapacity}
               onChange={(e) => setPassengerCapacity(e.target.value)}
-              required
             />
           </div>
 
@@ -127,7 +134,6 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
               placeholder="e.g. 115.50"
               value={priceMillionsUsd}
               onChange={(e) => setPriceMillionsUsd(e.target.value)}
-              required
             />
           </div>
 

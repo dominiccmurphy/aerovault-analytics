@@ -17,7 +17,7 @@ public class Airlines(NpgsqlDataSource dataSource) : ControllerBase
             FROM
                 vw_airline_snapshots
             WHERE
-                snapshot_date = COALESCE(@Date::date, (SELECT MAX(snapshot_date) FROM vw_country_snapshots))
+                snapshot_date = COALESCE(@Date::date, (SELECT MAX(snapshot_date) FROM vw_airline_snapshots))
             ORDER BY
                 active_aircraft_count DESC;",
             new {Date=date}
@@ -30,7 +30,7 @@ public class Airlines(NpgsqlDataSource dataSource) : ControllerBase
     {
         await using var conn = await dataSource.OpenConnectionAsync();
         // Run your Dapper conn.QueryAsync<AircraftModelDto>(...) here
-        var records = await conn.QueryFirstAsync<AirlineSnapshotDto>(
+        var records = await conn.QueryFirstOrDefaultAsync<AirlineSnapshotDto>(
             @"SELECT
                 *
             FROM
@@ -42,6 +42,8 @@ public class Airlines(NpgsqlDataSource dataSource) : ControllerBase
             LIMIT 1;",
             new {IcaoCode=icaoCode}
         );
+        if(records == null)
+            return NotFound();
         return Ok(records);
     }
 }

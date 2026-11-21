@@ -53,8 +53,8 @@ export interface LiveFlight {
   icao24: string;
   callsign: string;
   originCountry: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   baroAltitudeMeters: number | null;
   velocityMs: number | null;
   trueTrackDegrees: number;

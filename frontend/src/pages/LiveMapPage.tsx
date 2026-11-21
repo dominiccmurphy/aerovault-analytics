@@ -16,8 +16,14 @@ export function LiveMapPage({
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
  useEffect(() => {
-     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-     const eventSource = new EventSource(`${baseUrl}/liveradar/stream`);
+    const params = new URLSearchParams();
+    params.set('lamin', String(56.5));
+    params.set('lomin', String(-6.0));
+    params.set('lamax', String(59.0));
+    params.set('lomax', String(-2.0));
+
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const eventSource = new EventSource(`${baseUrl}/liveradar/stream?${params.toString()}`);
 
     eventSource.onmessage = (event) => { 
       const parsed = JSON.parse(event.data);
@@ -57,7 +63,7 @@ export function LiveMapPage({
 
           return (
             <Marker key={x.icao24} 
-              position={[x.latitude, x.longitude]} 
+              position={[x.latitude!, x.longitude!]} 
               icon={L.divIcon({ className: '', html: `<div style="transform: rotate(${angle}deg); color: #facc15; text-shadow: 0 0 3px rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; font-size: 25px;">✈</div>`, iconSize:[30,30], iconAnchor: [15, 15], })}
             />
           )
