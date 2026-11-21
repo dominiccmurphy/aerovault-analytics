@@ -5,22 +5,20 @@ import type {
 import { useEffect, useState } from 'react';
 import { formatDate } from '../utils/formatters';
 
-interface AirlineDetailPageProps {
-}
 
-export function AirlineDetailPage({
-}: AirlineDetailPageProps) {
+export function AirlineDetailPage() {
   const { icaoCode } = useParams<{ icaoCode: string }>();
   
   const [airline, setAirline] = useState<AirlineAirspace | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loadedIcao, setLoadedIcao] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const loading = Boolean(icaoCode) && loadedIcao !== icaoCode;
 
   useEffect(() => {
     if (!icaoCode) return;
 
-    setLoading(true);
-    setError(null);
+    let ignore = false;
 
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -32,13 +30,22 @@ export function AirlineDetailPage({
         return res.json();
       })
       .then((data: AirlineAirspace) => {
-        setAirline(data);
-        setLoading(false);
+        if(!ignore) {
+          setAirline(data);
+          setError(null);
+          setLoadedIcao(icaoCode);
+        }
       })
       .catch((err) => {
-        setError(err.message);
-        setLoading(false);
+        if(!ignore){
+          setError(err.message);
+          setLoadedIcao(icaoCode);
+        }
       });
+
+      return () => {
+        ignore = true;
+      }
   }, [icaoCode]);
 
   if (loading) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useParams, useNavigate, Link } from 'react-router-dom';
 import type { AircraftModel, CreateCommercialPayload, UpdateCommercialPayload } from '../types/aviation';
 
@@ -19,17 +19,29 @@ export function AircraftFormPage({ items, onSaved }: AircraftFormPageProps) {
 
   const aircraft = items.find((m) => m.modelId === modelId);
 
-  const [passengerCapacity, setPassengerCapacity] = useState('');
-  const [priceMillionsUsd, setPriceMillionsUsd] = useState('');
+  const [passengerCapacity, setPassengerCapacity] = useState(() =>
+    aircraft && isEditMode && aircraft.passengerCapacity != null
+      ? String(aircraft.passengerCapacity)
+      : ''
+  );
+  const [priceMillionsUsd, setPriceMillionsUsd] = useState(() =>
+    aircraft && isEditMode && aircraft.priceMillionsUsd != null
+      ? String(aircraft.priceMillionsUsd)
+      : ''
+  );
+  const [syncedModelId, setSyncedModelId] = useState<number | null>(() =>
+    aircraft && isEditMode ? aircraft.modelId : null
+  );
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (aircraft && isEditMode) {
-      setPassengerCapacity(aircraft.passengerCapacity != null ? String(aircraft.passengerCapacity) : '');
-      setPriceMillionsUsd(aircraft.priceMillionsUsd != null ? String(aircraft.priceMillionsUsd) : '');
-    }
-  }, [aircraft, isEditMode]);
+  // If App.tsx finished loading items AFTER initial mount (e.g., direct URL refresh)
+  if (aircraft && isEditMode && syncedModelId !== aircraft.modelId) {
+    setSyncedModelId(aircraft.modelId);
+    setPassengerCapacity(aircraft.passengerCapacity != null ? String(aircraft.passengerCapacity) : '');
+    setPriceMillionsUsd(aircraft.priceMillionsUsd != null ? String(aircraft.priceMillionsUsd) : '');
+  }
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();

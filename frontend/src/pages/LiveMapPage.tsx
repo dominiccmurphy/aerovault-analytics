@@ -6,11 +6,8 @@ import { MapContainer, Marker, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-interface LiveMapPageProps {
-}
 
-export function LiveMapPage({
-}: LiveMapPageProps) {
+export function LiveMapPage() {
   const [flights, setFlights] = useState<LiveFlight[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'live' | 'error'>('connecting');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
