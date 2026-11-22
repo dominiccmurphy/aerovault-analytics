@@ -8,18 +8,27 @@ interface CommercialSnapshot {
   price_millions_usd?: number | null;
 }
 
+function parseSnapshot(raw: string | null): CommercialSnapshot {
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as CommercialSnapshot;
+  } catch {
+    return {};
+  }
+}
+
 function formatChangeSummary(log: AuditLogEntry): string {
-  const oldObj: CommercialSnapshot = log.oldValues ? JSON.parse(log.oldValues) : {};
-  const newObj: CommercialSnapshot = log.newValues ? JSON.parse(log.newValues) : {};
+  const oldObj = parseSnapshot(log.oldValues);
+  const newObj = parseSnapshot(log.newValues);
 
   if (log.action === 'INSERT') {
-    return `Added — Seats: ${newObj.passenger_capacity ?? 'None'}, Price: ${
+    return `Added \u2014 Seats: ${newObj.passenger_capacity ?? 'None'}, Price: ${
       newObj.price_millions_usd != null ? `$${newObj.price_millions_usd}M` : 'None'
     }`;
   }
 
   if (log.action === 'DELETE') {
-    return `Removed — Seats: ${oldObj.passenger_capacity ?? 'None'}, Price: ${
+    return `Removed \u2014 Seats: ${oldObj.passenger_capacity ?? 'None'}, Price: ${
       oldObj.price_millions_usd != null ? `$${oldObj.price_millions_usd}M` : 'None'
     }`;
   }
@@ -27,13 +36,13 @@ function formatChangeSummary(log: AuditLogEntry): string {
   const changes: string[] = [];
   if (oldObj.passenger_capacity !== newObj.passenger_capacity) {
     changes.push(
-      `Seats: ${oldObj.passenger_capacity ?? 'None'} → ${newObj.passenger_capacity ?? 'None'}`
+      `Seats: ${oldObj.passenger_capacity ?? 'None'} \u2192 ${newObj.passenger_capacity ?? 'None'}`
     );
   }
   if (oldObj.price_millions_usd !== newObj.price_millions_usd) {
     const oldP = oldObj.price_millions_usd != null ? `$${oldObj.price_millions_usd}M` : 'None';
     const newP = newObj.price_millions_usd != null ? `$${newObj.price_millions_usd}M` : 'None';
-    changes.push(`Price: ${oldP} → ${newP}`);
+    changes.push(`Price: ${oldP} \u2192 ${newP}`);
   }
 
   return changes.length > 0 ? changes.join(' | ') : 'No value changes';
@@ -46,6 +55,8 @@ export function AuditLogPage() {
   const [actionFilter, setActionFilter] = useState<string>('ALL');
 
   useEffect(() => {
+    let ignore = false;
+
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     fetch(`${baseUrl}/audit`)
       .then((res) => {
@@ -53,13 +64,21 @@ export function AuditLogPage() {
         return res.json();
       })
       .then((data: AuditLogEntry[]) => {
-        setLogs(data);
-        setLoading(false);
+        if(!ignore) {
+          setLogs(data);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        setError(`Failed to load audit logs: ${err.message}`);
-        setLoading(false);
+        if(!ignore) {
+          setError(`Failed to load audit logs: ${err.message}`);
+          setLoading(false);
+        }
       });
+
+      return () => {
+        ignore = true;
+      }
   }, []);
 
   const filteredLogs =

@@ -52,7 +52,7 @@ INSERT INTO airlines (icao_code, name) VALUES
     ('AAL', 'American Airlines'),
     ('ACA', 'Air Canada'),
     ('AFR', 'Air France'),
-    ('AMX', 'Aeroméxico'),
+    ('AMX', E'Aerom\u00E9xico'),
     ('ANA', 'All Nippon Airways'),
     ('ANZ', 'Air New Zealand'),
     ('ASA', 'Alaska Airlines'),

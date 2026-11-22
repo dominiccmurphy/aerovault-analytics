@@ -22,7 +22,8 @@ services:
         condition: service_healthy
     environment:
       - PYTHONPATH=/opt/airflow
-      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_target:5432/airflow_meta
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - API_NINJAS_KEY=${API_NINJAS_KEY}
       - API_OPENSKY_KEY=${API_OPENSKY_KEY}
@@ -50,7 +51,8 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres_target;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
     depends_on:
-      - postgres_target
+      postgres_target:
+        condition: service_healthy
   
   frontend:
     build: ./frontend

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import psycopg2
 from psycopg2.extras import execute_values
 import requests
@@ -20,6 +20,12 @@ from include.transforms import convert_float
 
 DATA_DIR = Path("/opt/airflow/data/")
 TEMP_DIR = Path(f"{DATA_DIR}/tmp/opensky")
+
+DEFAULT_ARGS = {
+    "owner": "aerovault",
+    "retries": 2,
+    "retry_delay": timedelta(minutes=2),
+}
 
 @dataclass
 class FlightState:
@@ -249,6 +255,7 @@ def cleanup(**context):
 
 with DAG(
     dag_id="airspace_data_etl_pipeline",
+    default_args=DEFAULT_ARGS,
     start_date=datetime(2025, 1, 1),
     schedule="@daily",
     catchup=False,

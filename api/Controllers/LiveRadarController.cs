@@ -19,13 +19,20 @@ public class OpenSkyResponse
 public class LiveRadarController(IHttpClientFactory httpClientFactory, ILogger<LiveFlightDto> logger) : ControllerBase
 {
     [HttpGet("stream")]
-    public async Task Get(
-        [FromQuery] float lamin,
-        [FromQuery] float lomin,
-        [FromQuery] float lamax,
-        [FromQuery] float lomax,
+    public async Task<IActionResult> Get(
+        [FromQuery] float? lamin,
+        [FromQuery] float? lomin,
+        [FromQuery] float? lamax,
+        [FromQuery] float? lomax,
         CancellationToken cancellationToken)
     {
+        if(lamin is null || lamax is null || lomin is null || lomax is null)
+            return BadRequest("Invalid parameters supplied.");
+        if(lamin >= lamax)
+            return BadRequest("Minimum Latitude must be less than Maximum Latitude.");
+        if(lomin >= lomax)
+            return BadRequest("Minimum Longitude must be less than Maximum Longitude.");   
+
         Response.Headers.ContentType = "text/event-stream";
         Response.Headers.CacheControl = "no-cache";
         Response.Headers.Connection = "keep-alive";   
@@ -59,6 +66,8 @@ public class LiveRadarController(IHttpClientFactory httpClientFactory, ILogger<L
                         for (int i = 0; i < data.States.Count; i++)
                         {
                             var flight = data.States[i];
+                            if(flight.Count < 11)
+                                continue;
                             // Access specific elements by index and convert to their types
                             string icao24 = flight[0].GetString() ?? ""; // "a"
                             string callsign = flight[1].GetString()?.Trim() ?? icao24;
@@ -103,5 +112,7 @@ public class LiveRadarController(IHttpClientFactory httpClientFactory, ILogger<L
             }
 
         }
+
+        return new EmptyResult();
     }
 }
